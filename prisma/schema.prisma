@@ -1,0 +1,261 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Publisher {
+  id            String   @id @default(cuid())
+  walletAddress String   @unique @map("wallet_address")
+  websiteId     String?  @unique @map("website_id")
+  websiteDomain String?  @map("website_domain")
+  email         String?
+  name          String?
+  verified      Boolean  @default(false)
+  settings      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  adSlots     AdSlot[]
+  placements  AdPlacement[]
+  payments    Payment[]
+  withdrawals Withdrawal[]
+  bids        Bid[]
+  stats       PublisherStats?
+
+  @@map("publishers")
+}
+
+model AdSlot {
+  id              String   @id @default(cuid())
+  publisherId     String   @map("publisher_id")
+  slotIdentifier  String   @map("slot_identifier")
+  size            String
+  width           Int
+  height          Int
+  basePrice       Decimal  @map("base_price") @db.Decimal(10, 6)
+  currency        String   @default("MNT")
+  network         String   @default("mantle")
+  durationOptions String[] @map("duration_options")
+  category        String?
+  moderationLevel String   @default("medium") @map("moderation_level")
+  active          Boolean  @default(true)
+  websiteUrl      String   @map("website_url")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  publisher  Publisher     @relation(fields: [publisherId], references: [id], onDelete: Cascade)
+  placements AdPlacement[]
+
+  @@unique([publisherId, slotIdentifier])
+  @@map("ad_slots")
+}
+
+model AdPlacement {
+  id               String   @id @default(cuid())
+  slotId           String   @map("slot_id")
+  publisherId      String   @map("publisher_id")
+  advertiserWallet String   @map("advertiser_wallet")
+  contentType      String   @map("content_type")
+  contentUrl       String?  @map("content_url")
+  clickUrl         String?  @map("click_url")
+  description      String?
+  price            Decimal  @db.Decimal(10, 6)
+  currency         String   @default("MNT")
+  durationMinutes  Int      @map("duration_minutes")
+  startsAt         DateTime @map("starts_at")
+  expiresAt        DateTime @map("expires_at")
+  status           String   @default("pending")
+  moderationStatus String   @default("pending") @map("moderation_status")
+  moderationNotes  String?  @map("moderation_notes")
+  viewCount        Int      @default(0) @map("view_count")
+  clickCount       Int      @default(0) @map("click_count")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  slot      AdSlot      @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  publisher Publisher   @relation(fields: [publisherId], references: [id])
+  payment   Payment?
+  content   AdContent[]
+  bid       Bid?
+
+  @@map("ad_placements")
+}
+
+model AdContent {
+  id          String   @id @default(cuid())
+  placementId String   @map("placement_id")
+  type        String
+  fileName    String   @map("file_name")
+  filePath    String   @map("file_path")
+  fileSize    Int      @map("file_size")
+  mimeType    String   @map("mime_type")
+  width       Int?
+  height      Int?
+  duration    Int?
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  placement AdPlacement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+
+  @@map("ad_content")
+}
+
+model Payment {
+  id               String    @id @default(cuid())
+  placementId      String    @unique @map("placement_id")
+  publisherId      String    @map("publisher_id")
+  transactionHash  String    @map("transaction_hash")
+  blockNumber      Int?      @map("block_number")
+  amount           Decimal   @db.Decimal(10, 6)
+  currency         String    @default("MNT")
+  network          String    @default("mantle")
+  platformFee      Decimal   @map("platform_fee") @db.Decimal(10, 6)
+  publisherRevenue Decimal   @map("publisher_revenue") @db.Decimal(10, 6)
+  status           String    @default("pending")
+  verifiedAt       DateTime? @map("verified_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  placement AdPlacement @relation(fields: [placementId], references: [id])
+  publisher Publisher   @relation(fields: [publisherId], references: [id])
+
+  @@map("payments")
+}
+
+model Analytics {
+  id          String   @id @default(cuid())
+  placementId String   @map("placement_id")
+  eventType   String   @map("event_type")
+  timestamp   DateTime @default(now())
+  userAgent   String?  @map("user_agent")
+  ipAddress   String?  @map("ip_address")
+  country     String?
+  referrer    String?
+  metadata    Json?
+
+  @@map("analytics")
+}
+
+model StorageConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("storage_config")
+}
+
+model Withdrawal {
+  id              String    @id @default(cuid())
+  publisherId     String    @map("publisher_id")
+  amount          Decimal   @db.Decimal(10, 6)
+  currency        String    @default("MNT")
+  network         String    @default("mantle")
+  status          String    @default("pending")
+  walletAddress   String    @map("wallet_address")
+  transactionHash String?   @map("transaction_hash")
+  failureReason   String?   @map("failure_reason")
+  requestedAt     DateTime  @default(now()) @map("requested_at")
+  processedAt     DateTime? @map("processed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  publisher Publisher @relation(fields: [publisherId], references: [id], onDelete: Cascade)
+
+  @@map("withdrawals")
+}
+
+model Bid {
+  id String @id @default(cuid())
+
+  // What they want to bid on
+  publisherId String @map("publisher_id")
+  slotType    String @map("slot_type") // "header-banner", "sidebar", etc.
+
+  // Bidder info
+  advertiserWallet String  @map("advertiser_wallet")
+  bidAmount        Decimal @map("bid_amount") @db.Decimal(10, 6)
+
+  // Duration
+  durationMinutes Int @map("duration_minutes")
+
+  // Ad creative
+  adContentHash String  @map("ad_content_hash")
+  adTitle       String? @map("ad_title")
+  adDescription String? @map("ad_description")
+  clickUrl      String? @map("click_url")
+
+  // Payment
+  transactionHash String? @map("transaction_hash")
+  paymentVerified Boolean @default(false) @map("payment_verified")
+  currency        String  @default("MNT")
+  network         String  @default("mantle")
+
+  // Status workflow: pending_approval → approved → allocated → running → completed → refunded
+  status String @default("pending_approval")
+
+  // Approval
+  approvedAt      DateTime? @map("approved_at")
+  approvedBy      String?   @map("approved_by") // publisher wallet
+  rejectedAt      DateTime? @map("rejected_at")
+  rejectionReason String?   @map("rejection_reason")
+
+  // Allocation
+  allocatedAt        DateTime? @map("allocated_at")
+  allocatedSlotStart DateTime? @map("allocated_slot_start")
+  allocatedSlotEnd   DateTime? @map("allocated_slot_end")
+  placementId        String?   @unique @map("placement_id") // links to AdPlacement when allocated
+
+  // Refund tracking
+  refunded     Boolean   @default(false)
+  refundTxHash String?   @map("refund_tx_hash")
+  refundedAt   DateTime? @map("refunded_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  publisher Publisher    @relation(fields: [publisherId], references: [id], onDelete: Cascade)
+  placement AdPlacement? @relation(fields: [placementId], references: [id])
+
+  @@index([publisherId, status])
+  @@index([advertiserWallet])
+  @@index([status, bidAmount])
+  @@map("bids")
+}
+
+model PublisherStats {
+  id          String @id @default(cuid())
+  publisherId String @unique @map("publisher_id")
+
+  // Traffic stats
+  totalViews  Int     @default(0) @map("total_views")
+  totalClicks Int     @default(0) @map("total_clicks")
+  averageCTR  Decimal @default(0) @map("average_ctr") @db.Decimal(5, 2)
+
+  // Revenue stats
+  totalRevenue     Decimal @default(0) @map("total_revenue") @db.Decimal(10, 6)
+  averageSlotPrice Decimal @default(0) @map("average_slot_price") @db.Decimal(10, 6)
+
+  // Activity
+  activeSlotsCount Int @default(0) @map("active_slots_count")
+  totalAdsRun      Int @default(0) @map("total_ads_run")
+
+  // Trending (for marketplace)
+  viewsLast7Days  Int @default(0) @map("views_last_7_days")
+  viewsLast30Days Int @default(0) @map("views_last_30_days")
+
+  // Quality
+  approvalRate Decimal @default(100) @map("approval_rate") @db.Decimal(5, 2) // % of bids approved
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  publisher Publisher @relation(fields: [publisherId], references: [id], onDelete: Cascade)
+
+  @@map("publisher_stats")
+}

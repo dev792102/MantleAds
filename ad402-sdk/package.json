@@ -1,0 +1,63 @@
+{
+  "name": "mantleads-sdk",
+  "version": "1.0.0",
+  "description": "MantleAds SDK for Next.js applications - Easy integration of decentralized ad slots on Mantle blockchain",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mantleads",
+    "mantle-ads",
+    "advertising",
+    "decentralized",
+    "blockchain",
+    "nextjs",
+    "react",
+    "sdk",
+    "ipfs",
+    "mnt",
+    "mantle",
+    "bidding",
+    "pinata"
+  ],
+  "author": "MantleAds Team",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "next": ">=13.0.0"
+  },
+  "dependencies": {
+    "wagmi": "^2.0.0",
+    "@tanstack/react-query": "^5.0.0",
+    "viem": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mantleads/mono-repo.git",
+    "directory": "mantleads-sdk"
+  },
+  "homepage": "https://mantleads.io",
+  "bugs": {
+    "url": "https://github.com/mantleads/mono-repo/issues"
+  }
+}
