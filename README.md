@@ -1,72 +1,145 @@
-# 🚀 MantleAds - Main Application
+# 🚀 MantleAds - Decentralized Advertising Platform
 
-This is the main Next.js application for the MantleAds platform. It provides the publisher dashboard, ad upload interface, checkout for advertisers, and the API backend for ad management.
+> **A next-generation Web3 advertising ecosystem that unifies on-chain payments, decentralized IPFS storage via Pinata, and a competitive bidding model to enable transparent, trustless ad slot management.**
 
-## 🛠️ Built With
+## 🎯 **What is MantleAds?**
 
-- **Next.js 15**: Modern React framework for high-performance web applications.
-- **Mantle Network**: High-performance L2 blockchain for direct MNT token transfers.
-- **Pinata IPFS**: Decentralized storage for ad assets.
-- **Prisma**: Type-safe database client for PostgreSQL.
-- **Tailwind CSS**: Utility-first CSS framework for rapid UI development.
-- **Shadcn UI**: Beautifully designed accessible components.
+MantleAds is a fully decentralized advertising platform designed to transform how publishers monetize traffic and how advertisers acquire visibility. Built for the Web3 ecosystem, it delivers:
 
-## 🚀 Features
+- **🔗 On-chain Payments**: Direct, secure MNT token transactions on the Mantle network
+- **🌐 IPFS Storage**: Decentralized, persistent ad storage via Pinata
+- **⚡ Competitive Bidding Engine**: Fair, real-time bidding for ad slots
+- **📱 Modern UI**: Beautiful, responsive interface with Web3 integration
+- **🛠️ Plug-and-Play SDK**: Simple developer tools for quick website integration
 
-- **Direct MNT Payments**: Simplified ad purchasing with direct token transfers.
-- **Pinata Integration**: Reliable decentralized storage for ad images and metadata.
-- **Real-time Bidding**: Competitive ad slot management with automated queues.
-- **Publisher Dashboard**: Track performance and manage ad slots.
-- **Seamless Integration**: Ready to be consumed by the MantleAds SDK.
 
-## 🏁 Getting Started
+## 🏗️ **Architecture Overview**
 
-### Prerequisites
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Payment       │    │   Storage       │
+│   (Next.js)     │◄──►│   (MNT Direct)  │◄──►│   (IPFS/Pinata) │
+│   React App     │    │   Blockchain    │    │   Decentralized │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   MantleAds SDK │    │   API Routes    │    │   Queue System  │
+│   Integration   │    │   Serverless    │    │   Bidding       │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
 
-- Node.js 18+
-- PostgreSQL database
-- Pinata API credentials (JWT)
-- Mantle network wallet with MNT tokens
+## 🚀 **Key Features**
 
-### Installation
+### 💰 **Payment System**
+- **MNT Payments**: Direct MNT token transfers for ad purchases
+- **Mantle Network**: High-performance, low-cost L2 blockchain
+- **Multi-wallet Support**: MetaMask, WalletConnect, and more
 
-1. **Clone and Navigate**:
-   ```bash
-   cd app
-   ```
+### 🎯 **Ad Slot Management**
+- **Predefined Sizes**: Banner (728x90), Square (300x250), Mobile (320x60), Sidebar (160x600)
+- **Categories**: Technology, General, Demo slots
+- **Real-time Status**: Live ad availability and expiration
+- **Automatic Expiration**: Time-based ad lifecycle management
 
-2. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
+### ⚡ **Bidding System**
+- **Available Slots**: Immediate purchase at base price
+- **Occupied Slots**: Competitive bidding for next available slot
+- **Queue Management**: Higher bids get priority
+- **Automatic Activation**: Ads activate when current ad expires
 
-3. **Environment Setup**:
-   Create a `.env.local` file with the following:
-   ```bash
-   DATABASE_URL="postgresql://..."
-   PINATA_JWT="your_pinata_jwt"
-   PINATA_GATEWAY="https://gateway.pinata.cloud/ipfs/"
-   ```
+### 🌐 **Decentralized Storage**
+- **IPFS Integration**: All ads stored on IPFS via Pinata
+- **Persistent Storage**: Data survives server restarts and deployments
+- **Global Distribution**: Content delivered from IPFS network
+- **Caching Strategy**: Optimized performance with IPFS gateways
 
-4. **Database Setup**:
-   ```bash
-   npx prisma db push
-   ```
+## 📦 **MantleAds SDK**
 
-5. **Run Development Server**:
-   ```bash
-   npm run dev
-   ```
+The MantleAds SDK makes it incredibly easy to integrate decentralized advertising into any website:
 
-## 📂 Project Structure
+### 🎯 **Quick Integration**
 
-- `app/api/`: Serverless API routes for ad retrieval, uploads, and bidding.
-- `app/checkout/`: Payment and bidding interface for advertisers.
-- `app/upload/`: Ad content upload interface.
-- `app/dashboard/`: Publisher analytics and management.
-- `components/`: Reusable React components (MantleAdsSlot, WalletConnectModal).
-- `lib/`: Core logic for Pinata, MNT transfers, and ad services.
+```tsx
+// 1. Install the SDK
+npm install mantleads-sdk
 
-## 📄 License
+// 2. Wrap your app with MantleAdsProvider
+import { MantleAdsProvider } from 'mantleads-sdk';
 
-This project is licensed under the MIT License.
+export default function RootLayout({ children }) {
+  return (
+    <MantleAdsProvider
+      config={{
+        websiteId: 'your-website-id',
+        walletAddress: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+        apiBaseUrl: 'https://mantleads.io',
+      }}
+    >
+      {children}
+    </MantleAdsProvider>
+  );
+}
+
+// 3. Add ad slots to your pages
+import { MantleAdsSlot } from 'mantleads-sdk';
+
+export default function HomePage() {
+  return (
+    <div>
+      <h1>Welcome to My Website</h1>
+      
+      {/* Header banner ad */}
+      <MantleAdsSlot
+        slotId="header-banner"
+        size="banner"
+        price="0.25"
+        category="technology"
+      />
+      
+      <main>
+        <p>Your content here...</p>
+      </main>
+      
+      {/* Sidebar ad */}
+      <MantleAdsSlot
+        slotId="sidebar-ad"
+        size="sidebar"
+        price="0.15"
+        category="general"
+      />
+    </div>
+  );
+}
+```
+
+### 🔧 **Available Ad Slot Sizes**
+
+| Size | Dimensions | Best For |
+|------|------------|----------|
+| **banner** | 728x90px | Headers, footers |
+| **square** | 300x250px | Sidebars, mid-content |
+| **mobile** | 320x60px | Mobile devices |
+| **sidebar** | 160x600px | Vertical sidebars |
+
+## 🛠️ **Technical Implementation**
+
+### 🔗 **Blockchain Integration**
+- **MNT Token**: Native currency for all transactions
+- **Direct Transfers**: Simplified payment flow with direct MNT transfers
+- **Mantle Network**: Fast, low-cost L2 blockchain
+- **Wallet Integration**: MetaMask and other Web3 wallets
+
+### 🌐 **Storage Architecture**
+- **Pinata/IPFS**: Decentralized storage for all ad content
+- **HTTP-based Storage**: Efficient ad retrieval via Pinata gateway
+- **Persistent Data**: Survives serverless function invocations
+- **Global CDN**: Content delivered from IPFS network
+
+### ⚡ **API Endpoints**
+- `GET /api/ads/[slotId]` - Retrieve active ad for slot
+- `POST /api/upload-ad` - Upload new ad placement
+- `GET /api/queue-info/[slotId]` - Get bidding queue information
+- `POST /api/analytics/ad-view` - Track ad views
+- `POST /api/analytics/ad-click` - Track ad clicks
+- `GET /api/health` - System health monitoring
